@@ -1,6 +1,12 @@
 - name: Gather facts sample
   hosts: all
   tasks:
-    - name: change hostname
-      hostname:
-        name: test-machine
+   - name: Ansible create file if it doesn't exist example
+     file:
+      path: "/opt/myfile"
+      state: touch
+   - name: insert line
+     lineinfile:
+      path: /opt/myfile
+      line: halooo
+      create: yes
