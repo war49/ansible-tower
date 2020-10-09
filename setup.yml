@@ -3,10 +3,10 @@
   tasks:
    - name: Ansible create file if it doesn't exist example
      file:
-      path: "/home/ansible/myfile"
+      path: "/opt/myfile"
       state: touch
    - name: insert line
      lineinfile:
-      path: /home/ansible/myfile
+      path: /opt/myfile
       line: halooo
       create: yes
