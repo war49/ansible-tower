@@ -1,5 +1,6 @@
 - name: Gather facts sample
   hosts: all
   tasks:
-    - name: Ping
-      setup:
+    - name: change hostname
+      hostname:
+        name: test-machine.vm.local
