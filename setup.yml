@@ -1,0 +1,5 @@
+- name: Gather facts sample
+  hosts: all
+  tasks:
+    - name: Ping
+      setup:
