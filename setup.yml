@@ -3,4 +3,4 @@
   tasks:
     - name: change hostname
       hostname:
-        name: test-machine.vm.local
+        name: test-machine
