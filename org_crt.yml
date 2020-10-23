@@ -1,0 +1,93 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  vars:
+    awx_user:  "admin"
+    awx_pass:  "password"
+    bdformat:  "json"
+
+    content:   "application/json"
+
+  tasks:
+
+    #
+    # Create Organization
+    # curl -k -s --user $USERPASS -X POST \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/organizations/" \
+    #      --data '{
+    #            "name": "$ORGNAME", "variables": "api_awx_url:
+    #            \"https://$HOSTIP\"\napi_awx_username:$USER
+    #            \napi_awx_password:$PASS"
+    #       }' \
+    #       | python3 $PYARG
+
+    - name: Create organization
+      uri:
+        method: POST
+        url: "https://{{ host_ip }}/api/v2/organizations/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 201,400,403
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        body:
+          name:        "{{ org_name }}"
+          description: "ORG-49 project test"
+
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+
+      tags:
+        - organization_post
+
+    - debug:
+        msg: "{{ response }}"
+
+
+
+    # Display Organization
+    # curl -k -s --user $USERPASS -X GET \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/organizations/" \
+    #      --data '{
+    #                "variables": "api_awx_url:
+    #               \"https://$HOSTIP\"\napi_awx_username:$USER
+    #               \napi_awx_password:$PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+
+    - name: Display list organization
+      uri:
+        method: GET
+        url: "https://{{ host_ip }}/api/v2/organizations/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 200,401
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+
+      tags:
+        - organization_get
+
+    - debug:
+        msg: "{{ response }}"
+

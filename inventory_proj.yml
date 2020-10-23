@@ -1,0 +1,280 @@
+#
+# Test Tower Rest API
+# Method : POST, GET
+# Task POST: Create organization, create inventory & create project
+# Task GET: Listing organization, inventory & project
+# 
+# Suwardi - wardilee@icloud.com
+#
+#
+
+---
+- hosts: localhost
+  gather_facts: false
+
+  vars: 
+    awx_user:  "admin"
+    awx_pass:  "password"
+    bdformat:  "json"
+    
+    content:   "application/json"
+
+  tasks:
+
+    # Create Inventory
+    # curl -k -s --user $USERPASS -X POST \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/inventories/" \
+    #      --data '{ 
+    #                "name": $INV_NAME,"organization": $ORG_NAME \
+    #                "variables": "api_awx_url:
+    #               \"https://$HOSTIP\"\napi_awx_username:$USER
+    #               \napi_awx_password:$PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+    - name: Create an inventory
+      uri:
+        method: POST
+        url: "https://{{ host_ip }}/api/v2/inventories/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 200,201,400,403	
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        
+        body: 
+          name:         "{{ inv_name }}"
+          organization: "{{ org_id | int }}"
+
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+      
+      tags: 
+        - inventory_post
+
+    - debug:
+        msg: "{{ response }}"
+
+
+
+    #
+    # Display Inventory
+    # curl -k -s --user $USERPASS -X GET \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/inventories/" \
+    #      --data '{
+    #                "variables": "api_awx_url:
+    #                 \"https://$HOSTIP\"\napi_awx_username:$USER
+    #                 \napi_awx_password:$PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+
+    - name: Display list inventory
+      uri:
+        method: GET
+        url: "https://{{ host_ip }}/api/v2/inventories/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 200
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+
+      tags:
+        - inventory_get
+
+    - debug:
+        msg: "{{ response }}"
+
+
+    #
+    # Create Project
+    # curl -k -s --user $USERPASS -X POST \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/projects/" \
+    #      --data '{
+    #                "name": $PRJ_NAME,"organization": $ORG_NAME \
+    #                "local_path: $PRJ_PATH",
+    #                "variables": "api_awx_url:
+    #               \"https://$HOSTIP\"\napi_awx_username:$USER
+    #               \napi_awx_password:$PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+    - name: Create project
+
+      uri: 
+        method: POST
+        url: "https://{{ host_ip }}/api/v2/projects/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 200,201
+  
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+        
+        body:
+          name:         "{{ proj_name }}"
+          organization: "{{ org_id | int }}"
+          local_path:   "{{ proj_path }}"
+          timeout:      10
+    
+          return_content: yes
+      
+          headers:
+            Accept: "{{ content }}"
+
+      register: response
+     
+      tags:
+        - project_post
+ 
+    - debug:
+        msg: "{{ response.stdout }}"
+
+
+    #
+    # Display list Project
+    # curl -k -s --user $USERPASS -X GET \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/projects/" \
+    #      --data '{
+    #                "variables": "api_awx_url:
+    #               \"https://$HOSTIP\"\napi_awx_username:$USER
+    #               \napi_awx_password:PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+    - name: Display list project
+
+      uri:
+        method: GET
+        url: "https://{{ host_ip }}/api/v2/projects/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 200,201
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+
+      tags:
+        - project_get
+
+    - debug:
+        msg: "{{ response }}"
+
+
+    #
+    # Create job template
+    # curl -k -s --user $USERPASS -X GET \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/job_templates/" \
+    #      --data '{
+    #                "name":$JOBTEMPL, "inventory":$INV_NAME,
+    #                "project":$PRJ_NAME,
+    #                "variables": "api_awx_url:
+    #                \"https://$HOSTIP\"\napi_awx_username:$USER
+    #                \napi_awx_password:$PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+    - name: Create a job_template
+      
+      uri:
+        method: POST
+        url: "https://{{ host_ip }}/api/v2/job_templates/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 201,400,403
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        body:
+          name:      "{{ job_templ_name }}"
+          inventory: "{{ inv_id | int }}"
+          project:   "{{ proj_id | int }}"
+          playbook:  "{{ playbookY }}"
+          verbosity: 2
+ 
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+
+      tags:
+        - jobtemplate_post
+
+    - debug:
+        msg: "{{ response }}"
+
+
+    #
+    # Display job template
+    # curl -k -s --user $USERPASS -X GET \
+    #      -H "Content-Type: $APPJSON" \
+    #      "https://$HOSTIP/api/v2/job_templates/" \
+    #      --data '{
+    #                "variables": "api_awx_url:
+    #                \"https://$HOSTIP\"\napi_awx_username:$USER
+    #                \napi_awx_password:$PASS"
+    #         }' \
+    #       | python3 $PYARG
+
+    - name: Display a job_template
+
+      uri:
+        method: GET
+        url: "https://{{ host_ip }}/api/v2/job_templates/"
+        validate_certs: no
+        force_basic_auth: yes
+        body_format: "{{ bdformat }}"
+        status_code: 200
+
+        user:     "{{ awx_user }}"
+        password: "{{ awx_pass }}"
+
+        return_content: yes
+
+        headers:
+          Accept: "{{ content }}"
+
+      register: response
+
+      tags:
+        - jobtemplate_get
+
+    - debug:
+        msg: "{{ response }}"
+
+
+...
